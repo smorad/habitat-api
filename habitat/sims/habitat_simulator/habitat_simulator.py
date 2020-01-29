@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Union
 
 import numpy as np
 from gym import spaces
@@ -281,9 +281,16 @@ class HabitatSim(Simulator):
         self._update_agents_state()
 
     def geodesic_distance(self, position_a, position_b):
-        path = habitat_sim.ShortestPath()
-        path.requested_start = np.array(position_a, dtype=np.float32)
-        path.requested_end = np.array(position_b, dtype=np.float32)
+        path = habitat_sim.MultiGoalShortestPath()
+        if isinstance(position_b[0], List) or isinstance(
+            position_b[0], np.ndarray
+        ):
+            path.requested_ends = np.array(position_b, dtype=np.float32)
+        else:
+            path.requested_ends = np.array(
+                [np.array(position_b, dtype=np.float32)]
+            )
+
         self._sim.pathfinder.find_path(path)
         return path.geodesic_distance
 
